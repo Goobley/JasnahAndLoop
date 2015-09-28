@@ -1,0 +1,13 @@
+[
+{
+  "directory": "/home/goobley/LiveLooping",
+  "command": "clang++ -MM -MF obj/src/main.d -MP -MT obj/src/main.o -std=c++11 -c -O0 -g -Wall -Wextra -DDEBUG -I/usr/local/include/SDL2 -D_REENTRANT src/main.cpp",
+  "file": "/home/goobley/LiveLooping/src/main.cpp"
+}
+,
+{
+  "directory": "/home/goobley/LiveLooping",
+  "command": "clang++ -std=c++11 -c -O0 -g -Wall -Wextra -DDEBUG -I/usr/local/include/SDL2 -D_REENTRANT src/main.cpp -o obj/src/main.o",
+  "file": "/home/goobley/LiveLooping/src/main.cpp"
+}
+]

@@ -7,6 +7,7 @@
 
 #include "LethaniGlobalDefines.h"
 #include "../libSrc/looper.hpp"
+#include "../libSrc/MemoryLayout.hpp"
 #include <sys/stat.h>
 #include <SDL2/SDL.h>
 #include <string>
@@ -20,7 +21,7 @@ struct Loop
 {
     void* handle;
     time_t updateTime;
-    LoopState* state;
+    CompleteState* state;
     LoopAPI api;
     MemoryIndex totalHeapSize;
     void* heapMemory;
@@ -78,12 +79,12 @@ FileScope void LooperUnload(Loop* loop)
 
 int main(void)
 {
-    LoopState libState{};
-    libState.normalHeapSize = Megabytes(512);
-    libState.tempHeapSize = Megabytes(128);
+    CompleteState libState{};
+    libState.normalHeapSize = Megabytes(128);
+    libState.workingHeapSize = Megabytes(128);
 
     Loop loop{};
-    loop.totalHeapSize = libState.normalHeapSize + libState.tempHeapSize;
+    loop.totalHeapSize = libState.normalHeapSize + libState.workingHeapSize;
     loop.heapMemory = calloc(loop.totalHeapSize, sizeof(u8));
 
     libState.normalHeap = loop.heapMemory;

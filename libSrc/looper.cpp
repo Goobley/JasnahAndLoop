@@ -9,7 +9,7 @@
 #include <string>
 #include <iostream>
 
-FileScope void* Init(LoopState* state)
+FileScope void* Init(CompleteState* state)
 {
 }
 
@@ -18,19 +18,19 @@ FileScope void AnotherFunc()
     std::cout << "Here's another func...\n";
 }
 
-FileScope void Close(LoopState* state)
+FileScope void Close(CompleteState* state)
 {
 }
 
-FileScope void Reload(LoopState* state)
+FileScope void Reload(CompleteState* state)
 {
 }
 
-FileScope void Unload(LoopState* state)
+FileScope void Unload(CompleteState* state)
 {
 }
 
-FileScope bool Update(LoopState* state)
+FileScope bool Update(CompleteState* state)
 {
     std::cout << "Do you want to continue? [Y/n]" << std::endl;
     LocalPersist std::string response;

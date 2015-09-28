@@ -1,0 +1,10 @@
+- Template-ise vectors. Add vector operation methods
+
+- Get window open
+
+- Investigate colour stuff
+
+- Look into metastruct crawling
+       - Perhaps provide each struct with a static constexpr member
+         that returns its size and parse changed structs (for this a
+         dict of current structs will be needed)
