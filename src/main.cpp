@@ -22,6 +22,8 @@ struct Loop
     time_t updateTime;
     LoopState* state;
     LoopAPI api;
+    MemoryIndex totalHeapSize;
+    void* heapMemory;
 };
 
 FileScope void LooperLoad(Loop* loop)
@@ -43,8 +45,8 @@ FileScope void LooperLoad(Loop* loop)
             if (api != nullptr)
             {
                 loop->api = *api;
-                if (loop->state == nullptr)
-                    loop->state = loop->api.Init();
+                // if (loop->state == nullptr)
+                //     loop->state = loop->api.Init();
                 loop->api.Reload(loop->state);
             }
             else
@@ -76,7 +78,19 @@ FileScope void LooperUnload(Loop* loop)
 
 int main(void)
 {
+    LoopState libState{};
+    libState.normalHeapSize = Megabytes(512);
+    libState.tempHeapSize = Megabytes(128);
+
     Loop loop{};
+    loop.totalHeapSize = libState.normalHeapSize + libState.tempHeapSize;
+    loop.heapMemory = calloc(loop.totalHeapSize, sizeof(u8));
+
+    libState.normalHeap = loop.heapMemory;
+    libState.tempHeap = (void*)((u8*)libState.normalHeap + libState.normalHeapSize);
+
+    loop.state = &libState;
+
     while (true)
     {
         LooperLoad(&loop);

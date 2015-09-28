@@ -8,13 +8,31 @@
    ========================================================================== */
 
 #define LOOPER_H
+#include "../src/LethaniGlobalDefines.h"
+#include <cstddef>
 
-extern "C" struct LoopState;
+#define Kilobytes(Value) ((Value)*1024LL)
+#define Megabytes(Value) (Kilobytes(Value)*1024LL)
+#define Gigabytes(Value) (Megabytes(Value)*1024LL)
+#define Terabytes(Value) (Gigabytes(Value)*1024LL)
 
-extern "C" struct LoopAPI
+typedef std::size_t MemoryIndex;
+
+typedef struct LoopState
 {
-    /// Return clean state
-    LoopState* (*Init)();
+    /// Normal heap is fully persistent
+    MemoryIndex normalHeapSize;
+    void* normalHeap;
+
+    // Temp heap is cleared every frame
+    MemoryIndex tempHeapSize;
+    void* tempHeap;
+} LoopState;
+
+struct LoopAPI
+{
+    /// init clean state
+    void* (*Init)(LoopState* state);
     /// Close state
     void (*Close)(LoopState* state);
     /// Reload State - called once upon reload
@@ -26,6 +44,7 @@ extern "C" struct LoopAPI
     bool (*Update)(LoopState* state);
 };
 
+/// The structure of data called from the shared library by the platform code
 extern "C" const LoopAPI loopAPI;
 
 #endif
