@@ -80,15 +80,15 @@ FileScope void LooperUnload(Loop* loop)
 int main(void)
 {
     CompleteState libState{};
-    libState.normalHeapSize = Megabytes(128);
+    libState.persistantHeapSize = Megabytes(128);
     libState.workingHeapSize = Megabytes(128);
 
     Loop loop{};
-    loop.totalHeapSize = libState.normalHeapSize + libState.workingHeapSize;
+    loop.totalHeapSize = libState.persistantHeapSize + libState.workingHeapSize;
     loop.heapMemory = calloc(loop.totalHeapSize, sizeof(u8));
 
-    libState.normalHeap = loop.heapMemory;
-    libState.tempHeap = (void*)((u8*)libState.normalHeap + libState.normalHeapSize);
+    libState.persistantHeap = loop.heapMemory;
+    libState.workingHeap = (void*)((u8*)libState.persistantHeap + libState.persistantHeapSize);
 
     loop.state = &libState;
 

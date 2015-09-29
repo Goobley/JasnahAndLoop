@@ -11,6 +11,7 @@
 #include "../src/LethaniGlobalDefines.h"
 #include <cassert>
 #include <cstring>
+#include <SDL2/SDL.h>
 
 #define Kilobytes(value) ((value)*1024LL)
 #define Megabytes(value) (Kilobytes(value)*1024LL)
@@ -25,12 +26,11 @@ typedef std::size_t MemoryIndex;
 typedef struct CompleteState
 {
     /// Normal heap is fully persistent
-    MemoryIndex normalHeapSize;
-    void* normalHeap;
+    MemoryIndex persistantHeapSize;
+    void* persistantHeap;
 
-    // Temp heap is cleared every frame
     MemoryIndex workingHeapSize;
-    void* tempHeap;
+    void* workingHeap;
 } CompleteState;
 
 struct MemoryArena
@@ -46,6 +46,20 @@ struct TempBlock
 {
     MemoryArena* arena;
     MemoryIndex fillPoint;
+};
+
+struct GameState
+{
+    bool initialized;
+    f32 time;
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+};
+
+struct WorkingState
+{
+    bool initialized;
+    MemoryArena workingArena;
 };
 
 inline void

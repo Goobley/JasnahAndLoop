@@ -8,6 +8,8 @@
 #include "looper.hpp"
 #include <string>
 #include <iostream>
+// Only temporarily
+#include <cstdio>
 
 FileScope void* Init(CompleteState* state)
 {
@@ -24,6 +26,7 @@ FileScope void Close(CompleteState* state)
 
 FileScope void Reload(CompleteState* state)
 {
+    printf("Reloaded!\n");
 }
 
 FileScope void Unload(CompleteState* state)
@@ -32,6 +35,7 @@ FileScope void Unload(CompleteState* state)
 
 FileScope bool Update(CompleteState* state)
 {
+    #if 0
     std::cout << "Do you want to continue? [Y/n]" << std::endl;
     LocalPersist std::string response;
     std::getline(std::cin, response);
@@ -39,6 +43,47 @@ FileScope bool Update(CompleteState* state)
         return false;
     std::cout << "Interesting..." << std::endl;
     AnotherFunc();
+    #else
+
+    assert(sizeof(GameState) <= state->persistantHeapSize);
+    GameState* gameState = static_cast<GameState*>(state->persistantHeap);
+    if (!gameState->initialized)
+    {
+        SDL_Init(SDL_INIT_EVERYTHING);
+        SDL_DisplayMode displayMode;
+        if (SDL_GetDesktopDisplayMode(0, &displayMode) != 0)
+        {
+            // TODO(Chris): Logging!!
+            printf("%s", SDL_GetError());
+            // SDL_GetError();
+            return false;
+        }
+
+        if (SDL_CreateWindowAndRenderer(displayMode.w / 2, displayMode.h / 2,
+                                    SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL,
+                                    &gameState->window, &gameState->renderer)
+            != 0)
+        {
+            // TODO(Chris): Logging!!
+            // SDL_GetError();
+            printf("%s", SDL_GetError());
+            return false;
+        }
+        gameState->initialized = true;
+    }
+
+    assert(sizeof(WorkingState) <= state->workingHeapSize);
+    WorkingState* workState = static_cast<WorkingState*>(state->workingHeap);
+    if (!workState->initialized)
+    {
+        InitializeArena(&(workState->workingArena), state->workingHeapSize - sizeof(workState),
+                        static_cast<u8*>(state->workingHeap) + sizeof(workState));
+        workState->initialized = true;
+    }
+
+
+
+    #endif
 
     return true;
 }
