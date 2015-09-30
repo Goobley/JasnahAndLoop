@@ -60,7 +60,7 @@ FileScope bool Update(CompleteState* state)
         }
 
         if (SDL_CreateWindowAndRenderer(displayMode.w / 2, displayMode.h / 2,
-                                    SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL,
+                                    SDL_WINDOW_SHOWN,
                                     &gameState->window, &gameState->renderer)
             != 0)
         {
@@ -81,6 +81,24 @@ FileScope bool Update(CompleteState* state)
         workState->initialized = true;
     }
 
+
+    // SDL_SetRenderDrawColor(gameState->renderer, 0, 0, 0, 0);
+    SDL_RenderClear(gameState->renderer);
+    SDL_RenderPresent(gameState->renderer);
+
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0)
+    {
+        switch (e.type)
+        {
+        case SDL_QUIT:
+            return false;
+            break;
+
+        default:
+            break;
+        }
+    }
 
 
     #endif
