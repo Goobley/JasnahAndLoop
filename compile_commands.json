@@ -1,17 +1,17 @@
 [
 {
-  "directory": "/Users/goobley/LiveLooping/libSrc",
-  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -DLoop_EXPORTS -I/usr/local/include/SDL2   -std=c++11 -fPIC   -o CMakeFiles/Loop.dir/ColorConversion.cpp.o -c /Users/goobley/LiveLooping/libSrc/ColorConversion.cpp",
-  "file": "/Users/goobley/LiveLooping/libSrc/ColorConversion.cpp"
+  "directory": "/home/goobley/JasnahAndLoop/libSrc",
+  "command": "/usr/bin/c++   -DLoop_EXPORTS -I/usr/local/include/SDL2   -std=c++11 -fPIC   -o CMakeFiles/Loop.dir/looper.cpp.o -c /home/goobley/JasnahAndLoop/libSrc/looper.cpp",
+  "file": "/home/goobley/JasnahAndLoop/libSrc/looper.cpp"
 },
 {
-  "directory": "/Users/goobley/LiveLooping/libSrc",
-  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -DLoop_EXPORTS -I/usr/local/include/SDL2   -std=c++11 -fPIC   -o CMakeFiles/Loop.dir/looper.cpp.o -c /Users/goobley/LiveLooping/libSrc/looper.cpp",
-  "file": "/Users/goobley/LiveLooping/libSrc/looper.cpp"
+  "directory": "/home/goobley/JasnahAndLoop/libSrc",
+  "command": "/usr/bin/c++   -DLoop_EXPORTS -I/usr/local/include/SDL2   -std=c++11 -fPIC   -o CMakeFiles/Loop.dir/ColorConversion.cpp.o -c /home/goobley/JasnahAndLoop/libSrc/ColorConversion.cpp",
+  "file": "/home/goobley/JasnahAndLoop/libSrc/ColorConversion.cpp"
 },
 {
-  "directory": "/Users/goobley/LiveLooping/src",
-  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -I/usr/local/include/SDL2   -std=c++11    -o CMakeFiles/loop.dir/main.cpp.o -c /Users/goobley/LiveLooping/src/main.cpp",
-  "file": "/Users/goobley/LiveLooping/src/main.cpp"
+  "directory": "/home/goobley/JasnahAndLoop/src",
+  "command": "/usr/bin/c++    -I/usr/local/include/SDL2   -std=c++11    -o CMakeFiles/loop.dir/main.cpp.o -c /home/goobley/JasnahAndLoop/src/main.cpp",
+  "file": "/home/goobley/JasnahAndLoop/src/main.cpp"
 }
 ]

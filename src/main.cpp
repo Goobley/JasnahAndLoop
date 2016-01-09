@@ -15,7 +15,11 @@
 #include <thread>
 #include <chrono>
 
+#ifdef __APPLE__
 FileScope constexpr const char* libraryName = "bin/libLoop.dylib";
+#else // __linux__
+FileScope constexpr const char* libraryName = "bin/libLoop.so";
+#endif
 
 struct Loop
 {

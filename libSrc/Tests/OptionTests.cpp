@@ -11,7 +11,7 @@
 #include <vector>
 
 
-using Lethani::Option;
+using Jasnah::Option;
 
 struct TestOpts { int a, b, c; };
 inline constexpr
@@ -33,6 +33,8 @@ operator!=(const TestOpts& rhs, const TestOpts& lhs)
 struct NoCopy
 {
     int a, b, c;
+    NoCopy() = default;
+    NoCopy(int a, int b, int c) : a(a), b(b), c(c){}
     NoCopy(const NoCopy&) = delete;
     NoCopy(NoCopy&&) = default;
     NoCopy& operator=(const NoCopy&) = delete;
@@ -91,14 +93,14 @@ TEST_CASE("Creating Option<T> for simple objects", "[Option]")
 
         REQUIRE(o == 5);
         REQUIRE(o > 4);
-        REQUIRE(o != Lethani::None);
+        REQUIRE(o != Jasnah::None);
     }
 
     SECTION("Empty Option<T>")
     {
         TestOpts a{1, 2, 3};
         TestOpts b{2, 3, 4};
-        Option<TestOpts> o(Lethani::None);
+        Option<TestOpts> o(Jasnah::None);
 
         REQUIRE(o.IsNone() == true);
         REQUIRE(o.ValueOr(a) == a);
@@ -128,8 +130,8 @@ TEST_CASE("Creating Option<T> for simple objects", "[Option]")
     SECTION("Non-copyable POD Option<T>")
     {
         using std::move;
-        NoCopy a{1, 2, 3};
-        NoCopy b{2, 3, 4};
+        NoCopy a = {1, 2, 3};
+        NoCopy b = {2, 3, 4};
         Option<NoCopy> o1;
         Option<NoCopy> o2(move(b));
 
@@ -156,7 +158,7 @@ TEST_CASE("Creating Option<T> for simple objects", "[Option]")
         REQUIRE(val == 6);
 
         {
-            Option<NonTrivial> o(Lethani::ConstructInPlace, 1, &val);
+            Option<NonTrivial> o(Jasnah::ConstructInPlace, 1, &val);
         }
         // 1 dtor called
         REQUIRE(val == 7);
@@ -168,7 +170,7 @@ TEST_CASE("Creating Option<T> for simple objects", "[Option]")
         REQUIRE(val == 9);
 
         {
-            Option<NonTrivial> o(Lethani::ConstructInPlace, 1, &val);
+            Option<NonTrivial> o(Jasnah::ConstructInPlace, 1, &val);
             o.Emplace(1, &val);
         }
         // 2 dtors called
@@ -180,7 +182,7 @@ TEST_CASE("Creating Option<T> for simple objects", "[Option]")
         using std::vector;
         vector<int> v = {1, 2, 3};
         vector<int> v2 = {2, 3, 4};
-        Option<vector<int>> o(Lethani::ConstructInPlace, {1, 2, 3});
+        Option<vector<int>> o(Jasnah::ConstructInPlace, {1, 2, 3});
 
         REQUIRE(o.IsNone() == false);
         REQUIRE(o.ValueOr(v2) == v);
@@ -210,7 +212,7 @@ TEST_CASE("Creating Option<T> for simple objects", "[Option]")
 
     SECTION("MakeOption")
     {
-        using Lethani::MakeOption;
+        using Jasnah::MakeOption;
         int val = 0;
         {
             auto opt(MakeOption(NonTrivial(1, &val)));
@@ -243,63 +245,63 @@ struct DecisiveObject<Option<T> >
     {}
 };
 
-class error_code
-{
-    int __val_;
-    const std::error_category* __cat_;
-public:
-    error_code() _NOEXCEPT : __val_(0), __cat_(&std::system_category()) {}
+// class error_code
+// {
+//     int __val_;
+//     const std::error_category* __cat_;
+// public:
+//     error_code() _NOEXCEPT : __val_(0), __cat_(&std::system_category()) {}
 
-    error_code(int __val, const std::error_category& __cat) _NOEXCEPT
-        : __val_(__val), __cat_(&__cat) {}
+//     error_code(int __val, const std::error_category& __cat) _NOEXCEPT
+//         : __val_(__val), __cat_(&__cat) {}
 
-    template <class _Ep>
-        _LIBCPP_ALWAYS_INLINE
-        error_code(_Ep __e,
-                   typename std::enable_if<std::is_error_code_enum<_Ep>::value>::type* = 0
-                                                                     ) _NOEXCEPT
-            {*this = make_error_code(__e);}
+//     template <class _Ep>
+//         _LIBCPP_ALWAYS_INLINE
+//         error_code(_Ep __e,
+//                    typename std::enable_if<std::is_error_code_enum<_Ep>::value>::type* = 0
+//                                                                      ) _NOEXCEPT
+//             {*this = make_error_code(__e);}
 
-    _LIBCPP_ALWAYS_INLINE
-    void assign(int __val, const std::error_category& __cat) _NOEXCEPT
-    {
-        __val_ = __val;
-        __cat_ = &__cat;
-    }
+//     _LIBCPP_ALWAYS_INLINE
+//     void assign(int __val, const std::error_category& __cat) _NOEXCEPT
+//     {
+//         __val_ = __val;
+//         __cat_ = &__cat;
+//     }
 
-    template <class _Ep>
-        _LIBCPP_ALWAYS_INLINE
-    typename std::enable_if
-        <
-        std::is_error_code_enum<_Ep>::value,
-            error_code&
-        >::type
-        operator=(_Ep __e) _NOEXCEPT
-            {*this = make_error_code(__e); return *this;}
+//     template <class _Ep>
+//         _LIBCPP_ALWAYS_INLINE
+//     typename std::enable_if
+//         <
+//         std::is_error_code_enum<_Ep>::value,
+//             error_code&
+//         >::type
+//         operator=(_Ep __e) _NOEXCEPT
+//             {*this = make_error_code(__e); return *this;}
 
-    _LIBCPP_ALWAYS_INLINE
-    void clear() _NOEXCEPT
-    {
-        __val_ = 0;
-        __cat_ = &std::system_category();
-    }
+//     _LIBCPP_ALWAYS_INLINE
+//     void clear() _NOEXCEPT
+//     {
+//         __val_ = 0;
+//         __cat_ = &std::system_category();
+//     }
 
-    _LIBCPP_ALWAYS_INLINE
-    int value() const _NOEXCEPT {return __val_;}
+//     _LIBCPP_ALWAYS_INLINE
+//     int value() const _NOEXCEPT {return __val_;}
 
-    _LIBCPP_ALWAYS_INLINE
-    const std::error_category& category() const _NOEXCEPT {return *__cat_;}
+//     _LIBCPP_ALWAYS_INLINE
+//     const std::error_category& category() const _NOEXCEPT {return *__cat_;}
 
-    _LIBCPP_ALWAYS_INLINE
-    std::error_condition default_error_condition() const _NOEXCEPT
-        {return __cat_->default_error_condition(__val_);}
+//     _LIBCPP_ALWAYS_INLINE
+//     std::error_condition default_error_condition() const _NOEXCEPT
+//         {return __cat_->default_error_condition(__val_);}
 
-    std::string message() const;
+//     std::string message() const;
 
-    _LIBCPP_ALWAYS_INLINE
-        _LIBCPP_EXPLICIT
-        operator bool() const _NOEXCEPT {return __val_ != 0;}
-};
+//     _LIBCPP_ALWAYS_INLINE
+//         _LIBCPP_EXPLICIT
+//         operator bool() const _NOEXCEPT {return __val_ != 0;}
+// };
 
 TEST_CASE("Separating Option<T> from other objects", "[Option]")
 {

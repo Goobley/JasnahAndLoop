@@ -39,19 +39,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/Cellar/cmake/3.4.1/bin/cmake
+CMAKE_COMMAND = /usr/local/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/Cellar/cmake/3.4.1/bin/cmake -E remove -f
+RM = /usr/local/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/goobley/LiveLooping
+CMAKE_SOURCE_DIR = /home/goobley/JasnahAndLoop
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/goobley/LiveLooping
+CMAKE_BINARY_DIR = /home/goobley/JasnahAndLoop
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = /Users/goobley/LiveLooping
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/usr/local/Cellar/cmake/3.4.1/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -70,7 +70,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/local/Cellar/cmake/3.4.1/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -80,14 +80,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/goobley/LiveLooping && $(CMAKE_COMMAND) -E cmake_progress_start /Users/goobley/LiveLooping/CMakeFiles /Users/goobley/LiveLooping/libSrc/CMakeFiles/progress.marks
-	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 libSrc/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/goobley/LiveLooping/CMakeFiles 0
+	cd /home/goobley/JasnahAndLoop && $(CMAKE_COMMAND) -E cmake_progress_start /home/goobley/JasnahAndLoop/CMakeFiles /home/goobley/JasnahAndLoop/libSrc/CMakeFiles/progress.marks
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f CMakeFiles/Makefile2 libSrc/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/goobley/JasnahAndLoop/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 libSrc/clean
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f CMakeFiles/Makefile2 libSrc/clean
 .PHONY : clean
 
 # The main clean target
@@ -97,22 +97,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 libSrc/preinstall
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f CMakeFiles/Makefile2 libSrc/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 libSrc/preinstall
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f CMakeFiles/Makefile2 libSrc/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/goobley/LiveLooping && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/goobley/JasnahAndLoop && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 libSrc/CMakeFiles/Loop.dir/rule:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 libSrc/CMakeFiles/Loop.dir/rule
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f CMakeFiles/Makefile2 libSrc/CMakeFiles/Loop.dir/rule
 .PHONY : libSrc/CMakeFiles/Loop.dir/rule
 
 # Convenience name for target.
@@ -122,7 +122,7 @@ Loop: libSrc/CMakeFiles/Loop.dir/rule
 
 # fast build rule for target.
 Loop/fast:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/build
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/build
 .PHONY : Loop/fast
 
 ColorConversion.o: ColorConversion.cpp.o
@@ -131,7 +131,7 @@ ColorConversion.o: ColorConversion.cpp.o
 
 # target to build an object file
 ColorConversion.cpp.o:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/ColorConversion.cpp.o
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/ColorConversion.cpp.o
 .PHONY : ColorConversion.cpp.o
 
 ColorConversion.i: ColorConversion.cpp.i
@@ -140,7 +140,7 @@ ColorConversion.i: ColorConversion.cpp.i
 
 # target to preprocess a source file
 ColorConversion.cpp.i:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/ColorConversion.cpp.i
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/ColorConversion.cpp.i
 .PHONY : ColorConversion.cpp.i
 
 ColorConversion.s: ColorConversion.cpp.s
@@ -149,7 +149,7 @@ ColorConversion.s: ColorConversion.cpp.s
 
 # target to generate assembly for a file
 ColorConversion.cpp.s:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/ColorConversion.cpp.s
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/ColorConversion.cpp.s
 .PHONY : ColorConversion.cpp.s
 
 looper.o: looper.cpp.o
@@ -158,7 +158,7 @@ looper.o: looper.cpp.o
 
 # target to build an object file
 looper.cpp.o:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/looper.cpp.o
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/looper.cpp.o
 .PHONY : looper.cpp.o
 
 looper.i: looper.cpp.i
@@ -167,7 +167,7 @@ looper.i: looper.cpp.i
 
 # target to preprocess a source file
 looper.cpp.i:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/looper.cpp.i
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/looper.cpp.i
 .PHONY : looper.cpp.i
 
 looper.s: looper.cpp.s
@@ -176,7 +176,7 @@ looper.s: looper.cpp.s
 
 # target to generate assembly for a file
 looper.cpp.s:
-	cd /Users/goobley/LiveLooping && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/looper.cpp.s
+	cd /home/goobley/JasnahAndLoop && $(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/looper.cpp.s
 .PHONY : looper.cpp.s
 
 # Help Target
@@ -185,9 +185,9 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... Loop"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... Loop"
 	@echo "... ColorConversion.o"
 	@echo "... ColorConversion.i"
 	@echo "... ColorConversion.s"
@@ -205,6 +205,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/goobley/LiveLooping && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/goobley/JasnahAndLoop && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
