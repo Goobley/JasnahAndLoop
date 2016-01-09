@@ -15,7 +15,7 @@
 #include <thread>
 #include <chrono>
 
-FileScope constexpr const char* libraryName = "bin/libLoop.so";
+FileScope constexpr const char* libraryName = "bin/libLoop.dylib";
 
 struct Loop
 {
@@ -29,6 +29,9 @@ struct Loop
 
 FileScope void LooperLoad(Loop* loop)
 {
+    // Duplicate lib first
+
+
     struct stat libData;
     if ((stat(libraryName, &libData) == 0) && (loop->updateTime != libData.st_mtime))
     {

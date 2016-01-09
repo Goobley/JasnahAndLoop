@@ -80,14 +80,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/goobley/LiveLooping/CMakeFiles /Users/goobley/LiveLooping/CMakeFiles/progress.marks
-	$(MAKE) -f CMakeFiles/Makefile2 all
+	cd /Users/goobley/LiveLooping && $(CMAKE_COMMAND) -E cmake_progress_start /Users/goobley/LiveLooping/CMakeFiles /Users/goobley/LiveLooping/src/CMakeFiles/progress.marks
+	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 src/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/goobley/LiveLooping/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	$(MAKE) -f CMakeFiles/Makefile2 clean
+	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 src/clean
 .PHONY : clean
 
 # The main clean target
@@ -97,44 +97,60 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	$(MAKE) -f CMakeFiles/Makefile2 preinstall
+	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	$(MAKE) -f CMakeFiles/Makefile2 preinstall
+	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/goobley/LiveLooping && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-#=============================================================================
-# Target rules for targets named Loop
+# Convenience name for target.
+src/CMakeFiles/loop.dir/rule:
+	cd /Users/goobley/LiveLooping && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/loop.dir/rule
+.PHONY : src/CMakeFiles/loop.dir/rule
 
-# Build rule for target.
-Loop: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Loop
-.PHONY : Loop
+# Convenience name for target.
+loop: src/CMakeFiles/loop.dir/rule
 
-# fast build rule for target.
-Loop/fast:
-	$(MAKE) -f libSrc/CMakeFiles/Loop.dir/build.make libSrc/CMakeFiles/Loop.dir/build
-.PHONY : Loop/fast
-
-#=============================================================================
-# Target rules for targets named loop
-
-# Build rule for target.
-loop: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 loop
 .PHONY : loop
 
 # fast build rule for target.
 loop/fast:
-	$(MAKE) -f src/CMakeFiles/loop.dir/build.make src/CMakeFiles/loop.dir/build
+	cd /Users/goobley/LiveLooping && $(MAKE) -f src/CMakeFiles/loop.dir/build.make src/CMakeFiles/loop.dir/build
 .PHONY : loop/fast
+
+main.o: main.cpp.o
+
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	cd /Users/goobley/LiveLooping && $(MAKE) -f src/CMakeFiles/loop.dir/build.make src/CMakeFiles/loop.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	cd /Users/goobley/LiveLooping && $(MAKE) -f src/CMakeFiles/loop.dir/build.make src/CMakeFiles/loop.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	cd /Users/goobley/LiveLooping && $(MAKE) -f src/CMakeFiles/loop.dir/build.make src/CMakeFiles/loop.dir/main.cpp.s
+.PHONY : main.cpp.s
 
 # Help Target
 help:
@@ -144,8 +160,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... Loop"
 	@echo "... loop"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 
@@ -157,6 +175,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/goobley/LiveLooping && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

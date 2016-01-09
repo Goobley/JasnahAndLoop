@@ -27,6 +27,7 @@ FileScope void Close(CompleteState* state)
 FileScope void Reload(CompleteState* state)
 {
     printf("Reloaded!\n");
+    // printf("And Again!\n");
 }
 
 FileScope void Unload(CompleteState* state)
@@ -49,6 +50,7 @@ FileScope bool Update(CompleteState* state)
     GameState* gameState = static_cast<GameState*>(state->persistantHeap);
     if (!gameState->initialized)
     {
+        // TODO(Chris): Move SDL_Init to main
         SDL_Init(SDL_INIT_EVERYTHING);
         SDL_DisplayMode displayMode;
         if (SDL_GetDesktopDisplayMode(0, &displayMode) != 0)
