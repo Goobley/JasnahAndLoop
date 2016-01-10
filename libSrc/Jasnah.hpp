@@ -11,6 +11,10 @@
 #include "Option.hpp"
 #include <functional>
 #include <stdexcept>
+#include <tuple>
+
+// Set LOG through preproc stuff
+
 
 
 namespace Jasnah
@@ -18,6 +22,82 @@ namespace Jasnah
     // TODO(Chris): Check polution
     namespace JasPH = std::placeholders;
 
+    namespace Impl
+    {
+        // IndexSeq roughly as per C++14 standard
+        // Based on github.com/taocpp/sequences under MIT license
+        template <typename T, T...  Indices>
+        struct IndexSeq
+        {
+            typedef T value_type;
+
+            static constexpr
+            std::size_t
+            Size()
+            {
+                return sizeof...(Indices);
+            }
+        };
+
+        template <typename, std::size_t, bool Even>
+        struct DoubleLength;
+
+        template <typename T, T... Indices, std::size_t Length>
+        struct DoubleLength<IndexSeq<T, Indices...>, Length, false> // even
+        {
+            using type = IndexSeq<T, Indices..., (Length + Indices)...>;
+        };
+
+        template <typename T, T... Indices, std::size_t Length>
+        struct DoubleLength<IndexSeq<T, Indices...>, Length, true> // odd
+        {
+            using type = IndexSeq<T, Indices..., (Length + Indices)..., 2*Length>;
+        };
+
+        template <std::size_t Length, typename = void>
+        struct MakeIndexSeqImpl;
+
+        template <std::size_t Length>
+        struct MakeIndexSeqImpl<Length, typename std::enable_if<Length==0>::type>
+        {
+            using type = IndexSeq<std::size_t>;
+        };
+
+        template <std::size_t Length>
+        struct MakeIndexSeqImpl<Length, typename std::enable_if<Length==1>::type>
+        {
+            using type = IndexSeq<std::size_t, 0>;
+        };
+
+        template <std::size_t Length, typename>
+        struct MakeIndexSeqImpl
+            : DoubleLength<typename MakeIndexSeqImpl<Length/2>::type, Length/2, Length%2 == 1>
+        {};
+
+        template <typename Func, typename... Args, std::size_t... Seq>
+        inline auto
+        UnwrapTupleIntoFn(IndexSeq<std::size_t, Seq...>,
+                          const Func& f,
+                          const std::tuple<Args...>& fnArgs)
+            -> decltype(f(std::get<Seq>(fnArgs)...))
+        {
+            return f(std::get<Seq>(fnArgs)...);
+        }
+    }
+
+    template <std::size_t Length>
+    using MakeIndexSeq = Impl::MakeIndexSeqImpl<Length>;
+
+    template <typename Func, typename... Args>
+    inline auto
+    UnwrapTupleIntoFn(const Func& f, const std::tuple<Args...>& fnArgs)
+        -> decltype(f(std::declval<Args>()...))
+    {
+        return Impl::UnwrapTupleIntoFn(typename MakeIndexSeq<sizeof...(Args)>::type(), f, fnArgs);
+    }
+
+
+#ifdef JASNAH_PIPE_ORIG
     template<class F>
     struct Pipeable
     {
@@ -41,6 +121,69 @@ namespace Jasnah
     {
         return Pipeable<F>(std::forward<F>(f));
     }
+#else
+    template <class Func, typename LeftArgs = std::tuple<>, typename RightArgs = std::tuple<> >
+    struct Pipeable
+    {
+    private:
+        Func f;
+        LeftArgs left;
+        RightArgs right;
+    public:
+
+        Pipeable(Func&& f)
+            : f(std::forward<Func>(f)),
+              left(std::tuple<>()),
+              right(std::tuple<>())
+        {}
+
+        Pipeable(const Func& f, const LeftArgs& l, const RightArgs& r)
+            : f(f),
+              left(l),
+              right(r)
+        {}
+
+        template <typename... Args>
+        auto
+        operator()(Args&&... fnArgs) const
+            -> decltype(UnwrapTupleIntoFn(f, std::tuple_cat(left, std::make_tuple(fnArgs...), right)))
+        {
+            return UnwrapTupleIntoFn(f, std::tuple_cat(left,
+                                                       std::make_tuple(std::forward<Args>(fnArgs)...),
+                                                       right));
+        }
+
+        template <typename T>
+        auto
+        LeftCurry(T&& fnArg) const
+            -> decltype(Pipeable<Func, decltype(std::tuple_cat(left, std::make_tuple(fnArg))), RightArgs>
+                        (f, std::tuple_cat(left, std::make_tuple(fnArg)), right))
+        {
+            return Pipeable<Func, decltype(std::tuple_cat(left, std::make_tuple(fnArg))), RightArgs>
+                (f, std::tuple_cat(left, std::make_tuple(fnArg)), right);
+        }
+
+        template <typename T>
+        auto
+        RightCurry(T&& fnArg) const
+            -> decltype(Pipeable<Func, LeftArgs, decltype(std::tuple_cat(right, std::make_tuple(fnArg)))>
+                        (f, left, std::tuple_cat(right, std::make_tuple(fnArg))))
+        {
+            return Pipeable<Func, LeftArgs, decltype(std::tuple_cat(right, std::make_tuple(fnArg)))>
+                (f, left, std::tuple_cat(right, std::make_tuple(fnArg)));
+        }
+    };
+
+
+    template <typename Func>
+    auto
+    Piped(Func&& f)
+        -> decltype(Pipeable<Func>(std::forward<Func>(f)))
+    {
+        return Pipeable<Func>(std::forward<Func>(f));
+    }
+
+#endif
 
     template <class T>
     using InternalType = typename T::value_type;
@@ -74,6 +217,7 @@ namespace Jasnah
         return result;
     }
 
+#ifdef JASNAH_ORIG_PIPE
     template<typename T>
     auto MakeFnPipeableOneArg(T&& t) -> decltype(Piped(std::bind(t, JasPH::_1)))
     {
@@ -85,6 +229,19 @@ namespace Jasnah
     {
         return Piped(std::bind(t, JasPH::_1, JasPH::_2));
     }
+#else
+    template<typename T>
+    auto MakeFnPipeableOneArg(T&& t) -> decltype(Piped(t))
+    {
+        return Piped(t);
+    }
+
+    template<typename T>
+    auto MakeFnPipeableTwoArgs(T&& t) -> decltype(Piped(t))
+    {
+        return Piped(t);
+    }
+#endif
 
     //NOTE:: Export funcs, make more prominent
     template <class T>
@@ -218,6 +375,57 @@ auto operator|(Data&& x, const Func& f)
 // template<class T>
 // using first_argument_type = typename std::tuple_element<0, typename function_traits<T>::argument_types>::type;
 
+#endif
+
+// Curry operators
+#if 0
+template<typename Func, typename FnArg>
+auto
+operator<<=(const Func& f, FnArg&& fnArg)
+    -> decltype(f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg)))
+{
+    return f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg));
+}
+
+// template<typename Func, typename FnArg>
+// auto
+// operator >>=(const Func& f, FnArg&& fnArg)
+//     -> decltype(f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg)))
+// {
+//     return f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg));
+// }
+
+template<typename Func, typename FnArg>
+auto
+operator>>=(FnArg&& fnArg, const Func& f)
+    -> decltype(f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg)))
+{
+    return f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg));
+}
+#else
+template<typename Func, typename FnArg>
+auto
+operator<<=(const Func& f, FnArg&& fnArg)
+    -> decltype(f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg)))
+{
+    return f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg));
+}
+
+// template<typename Func, typename FnArg>
+// auto
+// operator >>=(const Func& f, FnArg&& fnArg)
+//     -> decltype(f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg)))
+// {
+//     return f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg));
+// }
+
+template<typename Func, typename FnArg>
+auto
+operator>>=(FnArg&& fnArg, const Func& f)
+    -> decltype(f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg)))
+{
+    return f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg));
+}
 #endif
 
 #endif
