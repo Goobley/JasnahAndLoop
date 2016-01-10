@@ -4,7 +4,7 @@
    $Notice: (C) Copyright 2015 Chris Osborne. All Rights Reserved. $
    $License: MIT: http://opensource.org/licenses/MIT $
    ========================================================================== */
-#include "../Jasnah.hpp"
+#include "../Jasnah2.hpp"
 #include "../Option.hpp"
 #define CATCH_CONFIG_MAIN
 #include "../../Tests/catch.hpp"
@@ -17,7 +17,6 @@
 using std::begin;
 using std::end;
 
-#define HANA
 #ifndef HANA
 auto Add = Jasnah::Piped([](int x, int y)
                          {
@@ -69,7 +68,7 @@ TEST_CASE("Container Processing")
 {
     SECTION("vector")
     {
-        std::vector<int> v(100000000);
+        std::vector<int> v(1000);
         std::iota(begin(v), end(v), 0);
         // {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
         // const std::vector<int> vStart = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -82,10 +81,13 @@ TEST_CASE("Container Processing")
         // auto result = v | vWhere([](int x) { return x > 5; }) | vMap([](int x) { return x*2; });
         // Update Map/Where design
         // UnwrapTupleIntoFn seems the slow point atm
-        auto result = (v >> Jasnah::curry<2>(Jasnah::WhereImpl()) << [](int x){return x%5==0;})
-            >> Jasnah::curry<2>(Jasnah::MapImpl()) << [](int x){return x*2;};
-        // auto result = v | (Jasnah::Piped(Jasnah::WhereImpl()) <<= [](int x) { return x % 5 == 0; })
-        //     | (Jasnah::Piped(Jasnah::MapImpl()) <<= [](int x) { return x*2; });
+        // auto result = (v >> Jasnah::curry<2>(Jasnah::WhereImpl()) << [](int x){return x%5==0;})
+        //     >> Jasnah::curry<2>(Jasnah::MapImpl()) << [](int x){return x*2;};
+        for (int i = 0; i < 10000; ++i)
+        {
+        auto result = v | (Jasnah::Piped(Jasnah::WhereImpl()) <<= [](int x) { return x % 5 == 0; })
+            | (Jasnah::Piped(Jasnah::MapImpl()) <<= [](int x) { return x*2; });
+        }
         // auto result = v | (vWhere <<= [](int x) { return x % 5 == 0; }) | (vMap <<= [](int x) { return x*2; });
         std::size_t end = __rdtsc();
         // {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -100,6 +102,8 @@ TEST_CASE("Container Processing")
 #if 1
         CHECK(end - start == 0);
         std::size_t start2 = __rdtsc();
+        for (int i = 0; i < 10000; ++i)
+        {
         std::vector<int> out;
         out.reserve(v.size());
         for (const auto& x : v)
@@ -112,6 +116,7 @@ TEST_CASE("Container Processing")
         for (const auto& x : out)
         {
             out2.push_back(2*x);
+        }
         }
         std::size_t end2 = __rdtsc();
         CHECK(end2 - start2 == 0);
