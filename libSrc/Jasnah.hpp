@@ -54,6 +54,7 @@ namespace Jasnah
             using type = IndexSeq<T, Indices..., (Length + Indices)..., 2*Length>;
         };
 
+        // template <std::size_t Length, typename = void>
         template <std::size_t Length, typename = void>
         struct MakeIndexSeqImpl;
 
@@ -122,66 +123,288 @@ namespace Jasnah
         return Pipeable<F>(std::forward<F>(f));
     }
 #else
-    template <class Func, typename LeftArgs = std::tuple<>, typename RightArgs = std::tuple<> >
-    struct Pipeable
+    // template <class Func, typename LeftArgs = std::tuple<>, typename RightArgs = std::tuple<> >
+    // struct Pipeable
+    // {
+    // private:
+    //     Func f;
+    //     LeftArgs left;
+    //     RightArgs right;
+    // public:
+
+    //     Pipeable(Func&& f)
+    //         : f(std::forward<Func>(f)),
+    //           left(std::tuple<>()),
+    //           right(std::tuple<>())
+    //     {}
+
+    //     Pipeable(const Func& f, const LeftArgs& l, const RightArgs& r)
+    //         : f(f),
+    //           left(l),
+    //           right(r)
+    //     {}
+
+    //     template <typename... Args>
+    //     auto
+    //     operator()(Args&&... fnArgs) const
+    //         -> decltype(UnwrapTupleIntoFn(f, std::tuple_cat(left, std::make_tuple(fnArgs...), right)))
+    //     {
+    //         return UnwrapTupleIntoFn(f, std::tuple_cat(left,
+    //                                                    std::make_tuple(std::forward<Args>(fnArgs)...),
+    //                                                    right));
+    //     }
+
+    //     template <typename T>
+    //     auto
+    //     LeftCurry(T&& fnArg) const
+    //         -> decltype(Pipeable<Func, decltype(std::tuple_cat(left, std::make_tuple(fnArg))), RightArgs>
+    //                     (f, std::tuple_cat(left, std::make_tuple(fnArg)), right))
+    //     {
+    //         return Pipeable<Func, decltype(std::tuple_cat(left, std::make_tuple(fnArg))), RightArgs>
+    //             (f, std::tuple_cat(left, std::make_tuple(fnArg)), right);
+    //     }
+
+    //     template <typename T>
+    //     auto
+    //     RightCurry(T&& fnArg) const
+    //         -> decltype(Pipeable<Func, LeftArgs, decltype(std::tuple_cat(right, std::make_tuple(fnArg)))>
+    //                     (f, left, std::tuple_cat(right, std::make_tuple(fnArg))))
+    //     {
+    //         return Pipeable<Func, LeftArgs, decltype(std::tuple_cat(right, std::make_tuple(fnArg)))>
+    //             (f, left, std::tuple_cat(right, std::make_tuple(fnArg)));
+    //     }
+    // };
+
+
+    // template <typename Func>
+    // auto
+    // Piped(Func&& f)
+    //     -> decltype(Pipeable<Func>(std::forward<Func>(f)))
+    // {
+    //     return Pipeable<Func>(std::forward<Func>(f));
+    // }
+
+    namespace Impl
     {
-    private:
-        Func f;
-        LeftArgs left;
-        RightArgs right;
-    public:
+        template <typename Indices, typename Func, typename... Args>
+        struct PartialFunc;
 
-        Pipeable(Func&& f)
-            : f(std::forward<Func>(f)),
-              left(std::tuple<>()),
-              right(std::tuple<>())
-        {}
-
-        Pipeable(const Func& f, const LeftArgs& l, const RightArgs& r)
-            : f(f),
-              left(l),
-              right(r)
-        {}
-
-        template <typename... Args>
-        auto
-        operator()(Args&&... fnArgs) const
-            -> decltype(UnwrapTupleIntoFn(f, std::tuple_cat(left, std::make_tuple(fnArgs...), right)))
+        struct MakePartialFunc
         {
-            return UnwrapTupleIntoFn(f, std::tuple_cat(left,
-                                                       std::make_tuple(std::forward<Args>(fnArgs)...),
-                                                       right));
-        }
+            struct Secret {};
+            template <typename Func, typename... Args>
+            constexpr PartialFunc<typename Jasnah::MakeIndexSeq<sizeof...(Args)>::type,
+                                  typename std::decay<Func>::type,
+                                  typename std::decay<Args>::type...>
+            operator()(Func&& f, Args&&... args) const
+            {
+                return {Secret{}, static_cast<Func&&>(f), static_cast<Args&&>(args)...};
+            }
+        };
 
-        template <typename T>
-        auto
-        LeftCurry(T&& fnArg) const
-            -> decltype(Pipeable<Func, decltype(std::tuple_cat(left, std::make_tuple(fnArg))), RightArgs>
-                        (f, std::tuple_cat(left, std::make_tuple(fnArg)), right))
+        template <std::size_t... Indices, typename Func, typename... Args>
+        // struct PartialFunc<Impl::IndexSeq<std::size_t, Indices...>, Func, Args...>
+        struct PartialFunc<Impl::IndexSeq<std::size_t, Indices...>, Func, Args...>
         {
-            return Pipeable<Func, decltype(std::tuple_cat(left, std::make_tuple(fnArg))), RightArgs>
-                (f, std::tuple_cat(left, std::make_tuple(fnArg)), right);
-        }
+            PartialFunc() = default;
+            std::tuple<Func, Args...> storage;
 
-        template <typename T>
-        auto
-        RightCurry(T&& fnArg) const
-            -> decltype(Pipeable<Func, LeftArgs, decltype(std::tuple_cat(right, std::make_tuple(fnArg)))>
-                        (f, left, std::tuple_cat(right, std::make_tuple(fnArg))))
+            template <typename... X>
+            constexpr PartialFunc(MakePartialFunc::Secret, X&&... args)
+                : storage{static_cast<X&&>(args)...}
+            {
+            }
+
+            // const lval
+            template <typename... X>
+            constexpr auto
+            operator()(X&&... fnArgs) const&
+                -> decltype(std::get<0>(storage)
+                            (std::get<Indices+1>(storage)...,
+                             static_cast<X&&>(fnArgs)...))
+            {
+                return std::get<0>(storage)
+                    (std::get<Indices+1>(storage)...,
+                     static_cast<X&&>(fnArgs)...);
+            }
+
+            // non-const lval C++11 problems
+            template <typename... X>
+            inline auto
+            operator()(X&&... fnArgs) &
+                -> decltype(std::get<0>(storage)
+                            (std::get<Indices+1>(storage)...,
+                             static_cast<X&&>(fnArgs)...))
+            {
+                return std::get<0>(storage)
+                    (std::get<Indices+1>(storage)...,
+                     static_cast<X&&>(fnArgs)...);
+            }
+
+            // rval
+            template <typename... X>
+            inline auto
+            operator()(X&&... fnArgs) &&
+                -> decltype(static_cast<Func&&>(std::get<0>(storage))
+                            (static_cast<Args&&>(std::get<Indices+1>(storage))...,
+                             static_cast<X&&>(fnArgs)...))
+            {
+                return static_cast<Func&&>(std::get<0>(storage))
+                    (static_cast<Args&&>(std::get<Indices+1>(storage))...,
+                     static_cast<X&&>(fnArgs)...);
+            }
+        };
+
+        constexpr MakePartialFunc PartialFn{};
+
+        struct ApplyToFunc
         {
-            return Pipeable<Func, LeftArgs, decltype(std::tuple_cat(right, std::make_tuple(fnArg)))>
-                (f, left, std::tuple_cat(right, std::make_tuple(fnArg)));
+            // Default method
+            template <typename Func, typename... Args>
+            constexpr auto operator()(Func&& f, Args&&... args) const
+                -> decltype(static_cast<Func&&>(f)(static_cast<Args&&>(args)...))
+            {
+                return static_cast<Func&&>(f)(static_cast<Args&&>(args)...);
+            }
+
+            // Handles virtual function calls
+            template <typename Base, typename T, typename Derived>
+            constexpr auto operator()(T Base::*pmd, Derived&& ref) const
+                -> decltype(static_cast<Derived&&>(ref).*pmd)
+            {
+                return static_cast<Derived&&>(ref).*pmd;
+            }
+
+            // Pointer to member data
+            template <typename PMD, typename Ptr>
+            constexpr auto operator()(PMD pmd, Ptr&& ptr) const
+                -> decltype((*static_cast<Ptr&&>(ptr)).*pmd)
+            {
+                return (*static_cast<Ptr&&>(ptr)).*pmd;
+            }
+
+            // Pointer to member function from class instance
+            template <typename Base, typename T, typename Derived, typename... Args>
+            constexpr auto operator()(T Base::*pmf, Derived&& ref, Args&&... args) const
+                -> decltype((static_cast<Derived&&>(ref).*pmf)(static_cast<Args&&>(args)...))
+            {
+                return (static_cast<Derived&&>(ref).*pmf)(static_cast<Args&&>(args)...);
+            }
+
+            // Pointer to member function from class pointer
+            template <typename PMF, typename Ptr, typename... Args>
+            constexpr auto operator()(PMF pmf, Ptr&& ptr, Args&&... args) const
+                -> decltype(((*static_cast<Ptr&&>(ptr)).*pmf)(static_cast<Args&&>(args)...))
+            {
+                return ((*static_cast<Ptr&&>(ptr)).*pmf)(static_cast<Args&&>(args)...);
+            }
+        };
+
+        constexpr ApplyToFunc ApplyFn{};
+
+
+    }
+    // Based on boost::hana
+    template <std::size_t NArgs, typename Func>
+    struct Curry;
+
+    template <std::size_t NArgs>
+    struct MakeCurry
+    {
+        template <typename Func>
+        constexpr Curry<NArgs, typename std::decay<Func>::type>
+        operator()(Func&& f) const
+        {
+            return {static_cast<Func&&>(f)};
         }
     };
 
+    template <std::size_t NArgs>
+    constexpr MakeCurry<NArgs> curry{};
+
+    template <std::size_t NArgs>
+    struct CurryOrCall;
+
+    template <std::size_t NArgs>
+    struct CurryOrCall
+    {
+        static constexpr MakeCurry<NArgs> Impl{};
+    };
+
+    template <>
+    struct CurryOrCall<0>
+    {
+        static constexpr auto Impl = Impl::ApplyFn;
+    };
+
+    template <std::size_t NArgs, typename Func>
+    struct Curry
+    {
+        Func f;
+
+        template <typename... Args>
+        constexpr auto
+        operator()(Args&&... args) const &
+            -> decltype(CurryOrCall<NArgs - sizeof...(Args)>::Impl
+                        (Impl::PartialFn(f, static_cast<Args&&>(args)...)))
+        {
+            static_assert(sizeof...(args) <= NArgs, "Too many args for Jasnah::Curry");
+            return CurryOrCall<NArgs - sizeof...(Args)>::Impl
+                (Impl::PartialFn(f, static_cast<Args&&>(args)...));
+        }
+
+        template <typename... Args>
+        inline auto
+        operator()(Args&&... args) &
+            -> decltype(CurryOrCall<NArgs - sizeof...(Args)>::Impl
+                        (Impl::PartialFn(f, static_cast<Args&&>(args)...)))
+        {
+            static_assert(sizeof...(args) <= NArgs, "Too many args for Jasnah::Curry");
+            return CurryOrCall<NArgs - sizeof...(Args)>::Impl
+                (Impl::PartialFn(f, static_cast<Args&&>(args)...));
+        }
+
+        template <typename... Args>
+        inline auto
+        operator()(Args&&... args) &&
+            -> decltype(CurryOrCall<NArgs - sizeof...(Args)>::Impl
+                        (Impl::PartialFn(std::move(f), static_cast<Args&&>(args)...)))
+        {
+            static_assert(sizeof...(args) <= NArgs, "Too many args for Jasnah::Curry");
+            return CurryOrCall<NArgs - sizeof...(Args)>::Impl
+                (Impl::PartialFn(std::move(f), static_cast<Args&&>(args)...));
+        }
+
+    };
 
     template <typename Func>
-    auto
-    Piped(Func&& f)
-        -> decltype(Pipeable<Func>(std::forward<Func>(f)))
+    struct Curry<0, Func>
     {
-        return Pipeable<Func>(std::forward<Func>(f));
-    }
+        Func f;
+
+        constexpr auto
+        operator()() const &
+            -> decltype(f())
+        {
+            return f();
+        }
+
+        inline auto
+        operator()() &
+            -> decltype(f())
+        {
+            return f();
+        }
+
+        inline auto
+        operator()() &&
+            -> decltype(std::move(f)())
+        {
+            return std::move(f)();
+        }
+    };
+
+    // L&R curry, currently we only have left curry
 
 #endif
 
@@ -455,7 +678,6 @@ operator>>=(FnArg&& fnArg, const Func& f)
 {
     return f.template RightCurry<FnArg>(std::forward<FnArg>(fnArg));
 }
-#else
 template<typename Func, typename FnArg>
 auto
 operator<<=(const Func& f, FnArg&& fnArg)
@@ -478,6 +700,22 @@ operator>>=(FnArg&& fnArg, const Func& f)
     -> decltype(f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg)))
 {
     return f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg));
+}
+#else
+template <typename Func, typename FnArg>
+auto
+operator>>(FnArg&& fnArg, const Func& f)
+    -> decltype(f(std::forward<FnArg>(fnArg)))
+{
+    return f(std::forward<FnArg>(fnArg));
+}
+
+template <typename Func, typename FnArg>
+auto
+operator<<(const Func& f, FnArg&& fnArg)
+    -> decltype(f(std::forward<FnArg>(fnArg)))
+{
+    return f(std::forward<FnArg>(fnArg));
 }
 #endif
 

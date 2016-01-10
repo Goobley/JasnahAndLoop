@@ -17,6 +17,8 @@
 using std::begin;
 using std::end;
 
+#define HANA
+#ifndef HANA
 auto Add = Jasnah::Piped([](int x, int y)
                          {
                              return x+y;
@@ -46,13 +48,28 @@ TEST_CASE("Basic Piping")
     // 2 / 4 * 10
     REQUIRE(z == 0);
 }
+#else
+auto Add = [](int x, int y){return x+y;};
+auto Mul = [](int x, int y){return x*y;};
+auto Div = [](int x, int y){return x/y;};
+
+TEST_CASE("Basics")
+{
+    const int y = (2 >> Jasnah::curry<2>(Div) << 1) >> (2 >> Jasnah::curry<2>(Add));
+    // const int y = 2>>=(1 >>= Jasnah::curry<2>(Div)); // 1 / 2 => = 0
+    // const int y = Jasnah::curry<2>(Add)(1)(2);
+    REQUIRE(y == 4);
+}
+
+
+#endif
 
 
 TEST_CASE("Container Processing")
 {
     SECTION("vector")
     {
-        std::vector<int> v(10000000);
+        std::vector<int> v(1000000);
         std::iota(begin(v), end(v), 0);
         // {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
         // const std::vector<int> vStart = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -65,8 +82,10 @@ TEST_CASE("Container Processing")
         // auto result = v | vWhere([](int x) { return x > 5; }) | vMap([](int x) { return x*2; });
         // Update Map/Where design
         // UnwrapTupleIntoFn seems the slow point atm
-        auto result = v | (Jasnah::Piped(Jasnah::WhereImpl()) <<= [](int x) { return x % 5 == 0; })
-            | (Jasnah::Piped(Jasnah::MapImpl()) <<= [](int x) { return x*2; });
+        auto result = (v >> Jasnah::curry<2>(Jasnah::WhereImpl()) << [](int x){return x%5==0;})
+            >> Jasnah::curry<2>(Jasnah::MapImpl()) << [](int x){return x*2;};
+        // auto result = v | (Jasnah::Piped(Jasnah::WhereImpl()) <<= [](int x) { return x % 5 == 0; })
+        //     | (Jasnah::Piped(Jasnah::MapImpl()) <<= [](int x) { return x*2; });
         // auto result = v | (vWhere <<= [](int x) { return x % 5 == 0; }) | (vMap <<= [](int x) { return x*2; });
         std::size_t end = __rdtsc();
         // {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -99,8 +118,8 @@ TEST_CASE("Container Processing")
 #endif
     }
 }
-
 #if 0
+
     SECTION("list")
     {
         std::list<int> l(10);
