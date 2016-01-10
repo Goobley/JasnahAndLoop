@@ -52,18 +52,22 @@ TEST_CASE("Container Processing")
 {
     SECTION("vector")
     {
-        std::vector<int> v(1000);
+        std::vector<int> v(10000000);
         std::iota(begin(v), end(v), 0);
         // {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
         // const std::vector<int> vStart = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         // REQUIRE(v == vStart);
 
-        auto vWhere = Jasnah::WhereFor<std::vector<int> >();
-        auto vMap = Jasnah::MapFor<std::vector<int> >();
+        // auto vWhere = Jasnah::WhereFor<std::vector<int> >();
+        // auto vMap = Jasnah::MapFor<std::vector<int> >();
 
         std::size_t start = __rdtsc();
         // auto result = v | vWhere([](int x) { return x > 5; }) | vMap([](int x) { return x*2; });
-        auto result = v | (vWhere <<= [](int x) { return x % 5 == 0; }) | (vMap <<= [](int x) { return x*2; });
+        // Update Map/Where design
+        // UnwrapTupleIntoFn seems the slow point atm
+        auto result = v | (Jasnah::Piped(Jasnah::WhereImpl()) <<= [](int x) { return x % 5 == 0; })
+            | (Jasnah::Piped(Jasnah::MapImpl()) <<= [](int x) { return x*2; });
+        // auto result = v | (vWhere <<= [](int x) { return x % 5 == 0; }) | (vMap <<= [](int x) { return x*2; });
         std::size_t end = __rdtsc();
         // {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
         // => {6, 7, 8, 9}
@@ -78,13 +82,15 @@ TEST_CASE("Container Processing")
         CHECK(end - start == 0);
         std::size_t start2 = __rdtsc();
         std::vector<int> out;
+        // out.reserve(v.size());
         for (const auto& x : v)
         {
             if (x % 5 == 0)
                 out.push_back(x);
         }
         std::vector<int> out2;
-        for (const auto& x : v)
+        // out2.reserve(out.size());
+        for (const auto& x : out)
         {
             out2.push_back(2*x);
         }

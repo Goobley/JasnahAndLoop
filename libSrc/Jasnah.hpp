@@ -191,13 +191,29 @@ namespace Jasnah
 // Extension methods for container processing
 // TODO(Chris): These use push_back for now, fix
 // TODO(Chris): Should probably reserve or something
-    template <typename T>
-    T WhereInContainer(const T& cont, std::function<bool(InternalType<T>)> Property)
+    // template <typename T, typename F>
+    // T WhereInContainer(const T& cont, const F& Property)
+    // // T WhereInContainer(const T& cont, std::function<bool(InternalType<T>)> Property)
+    // {
+    //     T result;
+    //     result.reserve(cont.size());
+    //     for (const auto& x : cont)
+    //     {
+    //         if (Property(x))
+    //         {
+    //             result.push_back(x);
+    //         }
+    //     }
+    //     return result;
+    // }
+    template <typename T, typename... TArgs, template<typename...>class C, typename F>
+    C<T,TArgs...> WhereInContainer(const C<T,TArgs...>& ctr, const F& f)
     {
-        T result;
-        for (const auto& x : cont)
+        C<T,TArgs...> result;
+        result.reserve(ctr.size());
+        for (const auto& x : ctr)
         {
-            if (Property(x))
+            if (f(x))
             {
                 result.push_back(x);
             }
@@ -205,17 +221,54 @@ namespace Jasnah
         return result;
     }
 
-    template <class T>
-    T MapToContainer(const T& cont, std::function<InternalType<T>
-                     (InternalType<T>)> Func)
+    struct WhereImpl
     {
-        T result;
-        for (const auto& x : cont)
+        template <typename... Args>
+        auto operator()(Args&&... args) const
+            -> decltype(WhereInContainer(std::forward<Args>(args)...))
         {
-            result.push_back(Func(x));
+            return WhereInContainer(std::forward<Args>(args)...);
+        }
+    };
+
+    // template <class T, typename F>
+    // T MapToContainer(const T& cont, const F& Func)
+    // // T MapToContainer(const T& cont, std::function<InternalType<T>
+    // //                  (InternalType<T>)> Func)
+    // {
+    //     T result;
+    //     result.reserve(cont.size());
+    //     for (const auto& x : cont)
+    //     {
+    //         result.push_back(Func(x));
+    //     }
+    //     return result;
+    // }
+
+    template <typename T, typename... TArgs, template <typename...>class C, typename F>
+    auto
+    MapToContainer(const C<T, TArgs...>& ctr, const F& f)
+        -> C<decltype(f(std::declval<T>()))>
+    {
+        using ResType = decltype(f(std::declval<T>()));
+        C<ResType> result;
+        result.reserve(ctr.size());
+        for (const auto& x : ctr)
+        {
+            result.push_back(f(x));
         }
         return result;
     }
+
+    struct MapImpl
+    {
+        template <typename... Args>
+        auto operator()(Args&&... args) const
+            -> decltype(MapToContainer(std::forward<Args>(args)...))
+        {
+            return MapToContainer(std::forward<Args>(args)...);
+        }
+    };
 
 #ifdef JASNAH_ORIG_PIPE
     template<typename T>
@@ -244,21 +297,21 @@ namespace Jasnah
 #endif
 
     //NOTE:: Export funcs, make more prominent
-    template <class T>
-    constexpr auto
-    WhereFor()
-        -> decltype(MakeFnPipeableTwoArgs(WhereInContainer<T>))
-    {
-        return MakeFnPipeableTwoArgs(WhereInContainer<T>);
-    }
+    // template <class T>
+    // constexpr auto
+    // WhereFor()
+    //     -> decltype(MakeFnPipeableTwoArgs(WhereInContainer<T>))
+    // {
+    //     return MakeFnPipeableTwoArgs(WhereInContainer<T>);
+    // }
 
-    template <class T>
-    constexpr auto
-    MapFor()
-        -> decltype(MakeFnPipeableTwoArgs(MapToContainer<T>))
-    {
-        return MakeFnPipeableTwoArgs(MapToContainer<T>);
-    }
+    // template <class T>
+    // constexpr auto
+    // MapFor()
+    //     -> decltype(MakeFnPipeableTwoArgs(MapToContainer<T>))
+    // {
+    //     return MakeFnPipeableTwoArgs(MapToContainer<T>);
+    // }
 
     // TODO(Chris): Move to be with the rest of the Option<T> code
     template <typename T>
