@@ -168,14 +168,15 @@ auto AddToOpt = Jasnah::Piped([](int x, int y)
 
 TEST_CASE("Option handling")
 {
-    // const Jasnah::Option<int> y = Jasnah::Option<int>(2) | OptAdd(2);
-    // REQUIRE(y == 4);
+    const Jasnah::Option<int> y = Jasnah::Option<int>(2) | Add << 2;
+    REQUIRE(y == 4);
     using Jasnah::Option;
 
-    // REQUIRE(Jasnah::IsOption<typename std::decay<Option<int> >::type>::value);
-    // REQUIRE_FALSE(Jasnah::IsOption<typename std::decay<decltype(Option<int>(3) | (Add << 2))>::type>::value);
-    const Option<int> z = Option<int>(3) | (AddToOpt << 2);
-    REQUIRE(*z == 5);
+    REQUIRE(Jasnah::IsOption<typename std::decay<Option<int> >::type>::value);
+    REQUIRE_FALSE(Jasnah::IsOption<typename std::decay<
+                  decltype(Option<int>(3) | (Add << 2))>::type>::value);
+    const Option<int> z = Option<int>(2) | (AddToOpt << 2);
+    REQUIRE(!z);
 
     // Jasnah::Option<int> a(5);
     // int b = 5;

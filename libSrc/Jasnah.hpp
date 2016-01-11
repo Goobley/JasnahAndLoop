@@ -53,7 +53,6 @@ namespace Jasnah
             using type = IndexSeq<T, Indices..., (Length + Indices)..., 2*Length>;
         };
 
-        // template <std::size_t Length, typename = void>
         template <std::size_t Length, typename = void>
         struct MakeIndexSeqImpl;
 
@@ -277,24 +276,34 @@ namespace Jasnah
     }
 }
 
-template <class Data, class Func, typename = void>
+
+// #define JASNAH_NO_OPTION_SPEC
+#ifndef JASNAH_NO_OPTION_SPEC
+#if 0
+template <class Data, class Func, bool = Jasnah::IsOption<
+                                      typename Jasnah::Impl::FnInfo<Func>::result_type>::value >
 constexpr auto
 operator|(Data&& x, const Func& f)
     -> decltype(f(std::forward<Data>(x)));
 
-#define JASNAH_NO_OPTION_SPEC
-#ifndef JASNAH_NO_OPTION_SPEC
+template <class Data, class Func, bool = Jasnah::IsOption<
+                                      typename Jasnah::Impl::FnInfo<Func>::result_type>::value >
+constexpr auto
+operator|(Jasnah::Option<Data>&& x, const Func& f)
+    -> decltype(f(std::forward<Data>(*x)));
 template <class Data, class Func
-          ,
-          typename std::enable_if<
-                                      Jasnah::IsOption<
-                                          // decltype(std::declval<Func>()
-                                          //          (std::forward<Data>(std::declval<Data>())))>::value
-                                          // typename std::decay<
-                                          //     typename std::result_of<Func(Data&&)>::type>::type
-                                          typename Jasnah::Impl::FnInfo<Func>::result_type
-                                      >::value
-              >::type >
+          , true
+          // typename std::enable_if<
+          //                             Jasnah::IsOption<
+          //                                 // decltype(std::declval<Func>()
+          //                                 //          (std::forward<Data>(std::declval<Data>())))>::value
+          //                                 // typename std::decay<
+          //                                 //     typename std::result_of<Func(Data&&)>::type>::type
+          //                                 // typename Jasnah::Impl::FnInfo<Func>::result_type
+          //                                 typename Jasnah::Impl::FnInfo<Func>::result_type
+          //                             >::value
+              // >::type
+>
 // template <typename Data, typename Func>
 constexpr auto operator|(Jasnah::Option<Data>&& x, const Func& f)
     -> decltype(f(std::forward<Data>(*x)))
@@ -314,6 +323,17 @@ constexpr auto operator|(Jasnah::Option<Data>&& x, const Func& f)
     }
 
 
+    return f(std::forward<Data>(*x));
+}
+
+template <class Data, class Func, false>
+constexpr auto
+operator|(Jasnah::Option<Data>&& x, const Func& f)
+    -> decltype(f(std::forward<Data>(*x)))
+{
+
+    if (!x)
+        throw std::invalid_argument("Tried to deref None");
     return f(std::forward<Data>(*x));
 }
 
@@ -340,11 +360,32 @@ constexpr auto operator|(Jasnah::Option<Data>&& x, const Func& f)
 
 //     return f(std::forward<Data>(*x));
 // }
+#else
+template <class Data, class Func, typename U>
+constexpr Jasnah::Option<U>
+operator|(Jasnah::Option<Data>&&x, const Func& f)
+{
+    if (!x)
+        return Jasnah::None;
+    return f(std::forward<Data>(*x));
+}
+
+template <class Data, class Func>
+constexpr auto
+operator|(Jasnah::Option<Data>&& x, const Func& f)
+    -> decltype(f(std::forward<Data>(*x)))
+{
+    if (!x)
+        throw std::invalid_argument("Deref'd None into non-optional function");
+    return f(std::forward<Data>(*x));
+}
+
+#endif
 
 #endif
 
 // NOTE(Chris): Operators need to be in the main namespace for this sorta thing
-template <class Data, class Func, typename>
+template <class Data, class Func>
 constexpr auto
 operator|(Data&& x, const Func& f)
     -> decltype(f(std::forward<Data>(x)))
