@@ -5,7 +5,7 @@
    $License: MIT: http://opensource.org/licenses/MIT $
    ========================================================================== */
 
-#include "../Option.hpp"
+#include "../Jasnah.hpp"
 #define CATCH_CONFIG_MAIN
 #include "../../Tests/catch.hpp"
 #include <vector>
