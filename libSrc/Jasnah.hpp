@@ -7,12 +7,24 @@
    $License: MIT: http://opensource.org/licenses/MIT $
    ========================================================================== */
 /* ==========================================================================
+   CHANGELOG:
+    - Update 0.4.1: Minor bugfixes
+    - Update 0.4.0: Stabilized API
+    - Update 0.3.0: Currying and Piping
+    - Initial release 0.2.0: Fully featured Option type
+   ========================================================================== */
+/* ==========================================================================
+   TODO:
+     - RTTI typename info
+   ========================================================================== */
+/* ==========================================================================
    Using code from:
      - IndexSeq roughly as per C++14 standard
        Based on github.com/taocpp/sequences from Daniel Frey under MIT
        license
 
-     - Currying and piping based on vitiy.info from Victor Laskin under ***
+     - Currying and piping based on vitiy.info from Victor Laskin
+       under granted permission (comment on Blog)
 
      - http://stackoverflow.com/a/5365786/3847013 for struct
        unpacking, under SO CC-BY license from James McNellis
@@ -47,14 +59,35 @@
      -- wrap these in a lambda for now.
      Use JAS_TEMPLATE_FN(Name, Fn) to wrap a templated function.
 
-   - Finish ctr lib; spec for map, mutablemap, reduce (and its spec)
+   - Container Library : Basic implementations of Reduce(foldl), Map
+     and Filter, from functional programming. Overloads to reserve
+     std::vector where applicable. TODO: foldr MutableMap
 
    - JasUnpack : some macro trickery to bind references to data in
      something like a struct to the current scope. Call with object to
      unpack from, followed by names of members to unpack (up to 5
      members)
 
-   - document operators
+   ==========================================================================
+   Currying:
+
+   For a Curry object f
+
+   1 >> f sets the first argument to 1
+   2 >> 1 >> f sets the first argument to 2 and the second to 1
+   f << 1 sets the last argument to 1
+   f << 1 << 2 sets the second to last argument to 1 and the last to 1
+
+   1 | f << 2 sets the last argument to 2 and pipes 1 into the first
+   empty slot of f
+
+   When piping an Option<T> (unless disabled), it is deref'd to its
+   internal type for the next function, if it contains a value. If the
+   function it's piped into returns an Option<U> and Option<T> ==
+   None, then the Option<U> is automatically set to None. If a None is
+   propagated into a non-option type, then an exception or abort is
+   thrown, depending on the settings.
+
    ==========================================================================
    Available Preprocessor configuration switches:
    #define these to enable them
@@ -959,81 +992,93 @@ namespace Jasnah
         return f.template LeftCurry<FnArg>(std::forward<FnArg>(fnArg));
     }
 
-    // Extension methods for container processing
+/* ==========================================================================
+   Extension methods for container processing
+   ========================================================================== */
 #ifndef JASNAH_NO_CTR_LIB
-        template <typename T, typename... TArgs, template<typename...>class C, typename F>
-        C<T,TArgs...> WhereInContainer(const C<T,TArgs...>& ctr, const F& f)
-        {
-            C<T,TArgs...> result;
-            for (const auto& x : ctr)
-            {
-                if (f(x))
-                {
-                    result.push_back(x);
-                }
-            }
-            return result;
-        }
-    }
-#include <vector>
-    namespace Jasnah
+    template <typename T, typename... TArgs, template<typename...>class C, typename F>
+    C<T,TArgs...> FilterContainer(const C<T,TArgs...>& ctr, const F& f)
     {
-        template <typename T, typename... TArgs, typename F>
-        std::vector<T,TArgs...> WhereInContainer(const std::vector<T,TArgs...>& ctr, const F& f)
+        C<T,TArgs...> result;
+        for (const auto& x : ctr)
         {
-            std::vector<T,TArgs...> result;
-            result.reserve(ctr.size());
-            for (const auto& x : ctr)
+            if (f(x))
             {
-                if (f(x))
-                {
-                    result.push_back(x);
-                }
+                result.push_back(x);
             }
-            return result;
         }
-
-        template <typename T, typename... TArgs, template <typename...>class C, typename F>
-        auto
-        MapToContainer(const C<T, TArgs...>& ctr, const F& f)
-            -> C<decltype(f(std::declval<T>()))>
+        return result;
+    }
+}
+#include <vector>
+namespace Jasnah
+{
+    template <typename T, typename... TArgs, typename F>
+    std::vector<T,TArgs...> FilterContainer(const std::vector<T,TArgs...>& ctr, const F& f)
+    {
+        std::vector<T,TArgs...> result;
+        result.reserve(ctr.size());
+        for (const auto& x : ctr)
         {
-            using ResType = decltype(f(std::declval<T>()));
-            C<ResType> result;
-            result.reserve(ctr.size());
-            for (const auto& x : ctr)
+            if (f(x))
             {
-                result.push_back(f(x));
+                result.push_back(x);
             }
-            return result;
         }
+        return result;
+    }
 
-JAS_TEMPLATE_FN(Where, WhereInContainer);
+    template <typename T, typename... TArgs, template <typename...>class C, typename F>
+    auto
+    MapToContainer(const C<T, TArgs...>& ctr, const F& f)
+        -> C<decltype(f(std::declval<T>()))>
+    {
+        using ResType = decltype(f(std::declval<T>()));
+        C<ResType> result;
+        for (const auto& x : ctr)
+        {
+            result.push_back(f(x));
+        }
+        return result;
+    }
+
+    template <typename T, typename... TArgs, typename F>
+    auto
+    MapToContainer(const std::vector<T, TArgs...>& ctr, const F& f)
+        -> std::vector<decltype(f(std::declval<T>()))>
+    {
+        using ResType = decltype(f(std::declval<T>()));
+        std::vector<ResType> result;
+        result.reserve(ctr.size());
+        for (const auto& x : ctr)
+        {
+            result.push_back(f(x));
+        }
+        return result;
+    }
+
+    // foldl
+    template <typename ResultType, typename InT, typename... InTArgs, template <typename...> class C, typename F>
+    ResultType
+    ReduceContainer(const C<InT, InTArgs...>& ctr, const ResultType& initial, const F& f)
+    {
+        ResultType result = initial;
+        for (const auto& x : ctr)
+        {
+            result = f(result, x);
+        }
+        return result;
+    }
+
+JAS_TEMPLATE_FN(Filter, FilterContainer);
 JAS_TEMPLATE_FN(Map, MapToContainer);
+JAS_TEMPLATE_FN(Reduce, ReduceContainer);
 
-
-
-    // struct Where
-    // {
-    //     template <typename... Args>
-    //     auto operator()(Args&&... args) const
-    //         -> decltype(Impl::WhereInContainer(std::forward<Args>(args)...))
-    //     {
-    //         return Impl::WhereInContainer(std::forward<Args>(args)...);
-    //     }
-    // };
-
-    // struct Map
-    // {
-    //     template <typename... Args>
-    //     auto operator()(Args&&... args) const
-    //         -> decltype(Impl::MapToContainer(std::forward<Args>(args)...))
-    //     {
-    //         return Impl::MapToContainer(std::forward<Args>(args)...);
-    //     }
-    // };
 #endif
 
+/* ==========================================================================
+   Struct unpacking auto macro stuff
+   ========================================================================== */
 #ifndef JASNAH_NO_UNPACK
 #define JAS_UNPACK1(_1)
 #define JAS_UNPACK2(OBJ, NAME1) auto& NAME1(OBJ.NAME1) // Unpacks 1 param

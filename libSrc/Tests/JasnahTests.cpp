@@ -107,7 +107,7 @@ TEST_CASE("Container Processing")
         {
             // auto result = v | (Jasnah::MakeCurry(Jasnah::Where()) << [](int x) { return x % 5 == 0; })
             //     | (Jasnah::MakeCurry(Jasnah::Map()) << [](int x) { return x*2; });
-            auto result = v | Jasnah::Where << [](int x) { return x > 5; }
+            auto result = v | Jasnah::Filter << [](int x) { return x > 5; }
                 | Jasnah::Map << [](int x) { return x*2; };
         }
         std::size_t end = __rdtsc();
@@ -120,7 +120,7 @@ TEST_CASE("Container Processing")
         // REQUIRE(result == vEnd);
 
         // Compare timing with naive
-#if 1
+#if 0
         CHECK(end - start == 0);
         std::size_t start2 = __rdtsc();
         for (int i = 0; i < 10000; ++i)
@@ -142,6 +142,16 @@ TEST_CASE("Container Processing")
         std::size_t end2 = __rdtsc();
         CHECK(end2 - start2 == 0);
 #endif
+
+        SECTION("Vector 2")
+        {
+            std::vector<int> v(10);
+            std::iota(std::begin(v), std::end(v), 0);
+
+            auto result = v | Jasnah::Reduce << 0 << [](int running, int iter) {return (running + iter);};
+
+            REQUIRE(result == 45);
+        }
     }
 
 //     SECTION("list")
